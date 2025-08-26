@@ -1,13 +1,14 @@
-name: Build Production APK
+name: DISABLED - Build Production APK
 
 on:
   workflow_dispatch:
-  push:
-    branches: [ main ]
-    paths: 
-      - 'android/**'
-      - '.github/workflows/**'
-      - 'build-*.sh'
+    inputs:
+      force_build:
+        description: 'Force build (disabled workflow)'
+        required: false
+        default: false
+# DISABLED: This workflow is disabled to prevent duplicate builds
+# Use build-apk.yml instead
 
 jobs:
   build:
