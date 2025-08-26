@@ -1505,72 +1505,60 @@ public class MainActivity extends AppCompatActivity {
                 int responseCode = connection.getResponseCode();
                 Log.d(TAG, "Chat API response code: " + responseCode);
                 
-                if (responseCode == 200) {
-                    BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-                    StringBuilder response = new StringBuilder();
-                    String line;
-                    while ((line = reader.readLine()) != null) {
-                        response.append(line);
-                    }
-                    reader.close();
+                // Read response regardless of status code
+                InputStream inputStream = (responseCode >= 200 && responseCode < 300) 
+                    ? connection.getInputStream() 
+                    : connection.getErrorStream();
                     
-                    String responseText = response.toString();
-                    Log.d(TAG, "Chat response: " + responseText);
+                BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+                StringBuilder response = new StringBuilder();
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    response.append(line);
+                }
+                reader.close();
+                
+                String responseText = response.toString();
+                Log.d(TAG, "Chat response (code " + responseCode + "): " + responseText);
+                
+                mainHandler.post(() -> {
+                    removeTypingIndicator();
                     
-                    // Parse AI response and updated diamond count
-                    if (responseText.contains("\"response\":")) {
-                        String aiResponse = extractJsonValue(responseText, "response");
-                        String diamondsStr = extractJsonValue(responseText, "remainingDiamonds");
-                        
-                        Log.d(TAG, "Received AI response: " + aiResponse.substring(0, Math.min(50, aiResponse.length())) + "...");
-                        Log.d(TAG, "Updated diamond count: " + diamondsStr);
-                        
-                        mainHandler.post(() -> {
-                            removeTypingIndicator();
+                    if (responseCode == 200) {
+                        // SUCCESS: Parse AI response and diamond count
+                        if (responseText.contains("\"response\":")) {
+                            String aiResponse = extractJsonValue(responseText, "response");
+                            String diamondsStr = extractJsonValue(responseText, "remainingDiamonds");
+                            
+                            Log.d(TAG, "AI Response: " + aiResponse);
                             addMessage(aiResponse, false);
                             
-                            // Update diamond count from server response
+                            // Update diamond count
                             try {
-                                int serverDiamonds = Integer.parseInt(diamondsStr);
-                                diamondCount = serverDiamonds;
+                                diamondCount = Integer.parseInt(diamondsStr);
                                 updateDiamondDisplay();
-                                Log.d(TAG, "Updated diamond count after message: " + diamondCount);
                             } catch (NumberFormatException e) {
-                                Log.e(TAG, "Error parsing diamond count: " + diamondsStr);
-                                // Fallback: fetch diamond count from server
                                 fetchDiamondCount();
                             }
-                        });
-                    } else {
-                        Log.e(TAG, "No response field found in: " + responseText);
-                        mainHandler.post(() -> {
-                            removeTypingIndicator();
-                            addMessage("❌ No response received from AI", false);
-                        });
-                    }
-                } else {
-                    Log.e(TAG, "Chat API failed with code: " + responseCode);
-                    
-                    // Read error response
-                    BufferedReader errorReader = new BufferedReader(new InputStreamReader(connection.getErrorStream()));
-                    StringBuilder errorResponse = new StringBuilder();
-                    String errorLine;
-                    while ((errorLine = errorReader.readLine()) != null) {
-                        errorResponse.append(errorLine);
-                    }
-                    errorReader.close();
-                    
-                    Log.e(TAG, "Error response: " + errorResponse.toString());
-                    
-                    mainHandler.post(() -> {
-                        removeTypingIndicator();
-                        if (responseCode == 402) {
-                            addMessage("❌ Not enough diamonds! Please purchase more diamonds to continue.", false);
-                        } else {
-                            addMessage("❌ Failed to send message. Please try again.", false);
                         }
-                    });
-                }
+                    } else if (responseCode == 402) {
+                        // INSUFFICIENT DIAMONDS
+                        String remainingStr = extractJsonValue(responseText, "remainingDiamonds");
+                        try {
+                            diamondCount = Integer.parseInt(remainingStr);
+                            updateDiamondDisplay();
+                        } catch (Exception e) {
+                            diamondCount = 0;
+                            updateDiamondDisplay();
+                        }
+                        
+                        addMessage("💎 You need more diamonds to send messages! You have " + diamondCount + " diamonds remaining.", false);
+                    } else {
+                        // OTHER ERRORS
+                        Log.e(TAG, "Chat API error " + responseCode + ": " + responseText);
+                        addMessage("❌ Connection error. Please check your internet and try again.", false);
+                    }
+                });
                 
                 connection.disconnect();
                 

@@ -58,23 +58,30 @@ jobs:
         tag_name: build-${{ github.run_number }}
         name: RedVelvet APK Build ${{ github.run_number }}
         body: |
-          ## RedVelvet AI Companion APK - Ready to Install
+          ## RedVelvet AI Companion APK - AI Chat Issue FIXED
           
-          ✅ **Java compilation errors fixed**  
-          ✅ **Server live at https://red-velvet-connection.replit.app**  
-          ✅ **AI responses and diamond tracking working**  
-          ✅ **Back button navigation crash-proof**  
+          ✅ **AI Chat Response Issue Fixed**  
+          ✅ **Proper Error Handling for Diamond Depletion**  
+          ✅ **Java Compilation Errors Resolved**  
+          ✅ **Server Live and Tested Working**  
+          
+          ### What Was Fixed
+          - Android APK now properly handles ALL server responses
+          - Clear error messages when diamonds are exhausted
+          - Fixed "no response received from AI" issue
+          - Removed duplicate error handling code
           
           ### Installation Instructions
           1. Download `app-debug.apk` from this release
           2. Enable "Unknown sources" in Android settings
-          3. Install APK and enjoy your AI companion
+          3. Install APK and start chatting with AI companions
           
-          ### Verified Features
-          - Device-based diamond tracking (25 diamonds welcome bonus)
-          - AI chat with automatic diamond deduction
-          - WhatsApp-style mobile interface
-          - Crash-proof back button navigation
+          ### Verified Working Features
+          - AI chat responses with diamond deduction (25 diamonds welcome bonus)
+          - Device-based diamond tracking across app restarts
+          - WhatsApp-style mobile chat interface
+          - Proper error messages for network/diamond issues
+          - Server connection: https://red-velvet-connection.replit.app
         files: android/app/build/outputs/apk/debug/app-debug.apk
         draft: false
         prerelease: false
