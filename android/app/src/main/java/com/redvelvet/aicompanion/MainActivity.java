@@ -14,7 +14,6 @@ import android.os.Handler;
 import android.os.Looper;
 import androidx.appcompat.app.AppCompatActivity;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.io.BufferedReader;
@@ -1270,41 +1269,29 @@ public class MainActivity extends AppCompatActivity {
         backButton.setBackgroundColor(0x88FFFFFF);
         backButton.setTextColor(0xFFE91E63);
         backButton.setOnClickListener(v -> {
-            Log.d(TAG, "CHAT BACK BUTTON clicked - forcing return to home");
+            // FIXED: Return to home screen immediately without crashes
+            Log.d(TAG, "Chat back button pressed - returning to home");
+            currentScreen = "home";
+            currentCompanionId = -1;
+            currentCompanionName = "";
             
-            try {
-                // Reset everything immediately
-                currentScreen = "home";
-                currentCompanionId = -1;
-                currentCompanionName = "";
-                
-                // NULL all references to prevent crashes
+            // Clear chat state
+            if (chatMessages != null) {
+                chatMessages.removeAllViews();
                 chatMessages = null;
-                chatScrollView = null;
-                messageInput = null;
-                
-                // Force diamond refresh
-                fetchDiamondCount();
-                
-                // ABSOLUTE FIX: Complete interface recreation
-                runOnUiThread(() -> {
-                    try {
-                        setContentView(new LinearLayout(this)); // Clear completely
-                        createInteractiveInterface(); // Rebuild home
-                        Log.d(TAG, "CHAT BACK: Successfully returned to home");
-                    } catch (Exception e) {
-                        Log.e(TAG, "CHAT BACK error: " + e.getMessage());
-                        // Emergency restart if recreation fails
-                        finish();
-                        startActivity(getIntent());
-                    }
-                });
-            } catch (Exception e) {
-                Log.e(TAG, "CRITICAL CHAT BACK ERROR: " + e.getMessage());
-                // Emergency restart
-                finish();
-                startActivity(getIntent());
             }
+            if (chatScrollView != null) {
+                chatScrollView.removeAllViews();
+                chatScrollView = null;
+            }
+            
+            // Force refresh diamond count
+            fetchDiamondCount();
+            
+            // CRITICAL FIX: Recreate complete interface from scratch
+            setContentView(null); // Clear everything
+            createInteractiveInterface(); // Rebuild home screen
+            Log.d(TAG, "Successfully returned to home screen");
         });
         
         TextView headerTitle = new TextView(this);
@@ -1506,60 +1493,72 @@ public class MainActivity extends AppCompatActivity {
                 int responseCode = connection.getResponseCode();
                 Log.d(TAG, "Chat API response code: " + responseCode);
                 
-                // Read response regardless of status code
-                InputStream inputStream = (responseCode >= 200 && responseCode < 300) 
-                    ? connection.getInputStream() 
-                    : connection.getErrorStream();
+                if (responseCode == 200) {
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                    StringBuilder response = new StringBuilder();
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        response.append(line);
+                    }
+                    reader.close();
                     
-                BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
-                StringBuilder response = new StringBuilder();
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    response.append(line);
-                }
-                reader.close();
-                
-                String responseText = response.toString();
-                Log.d(TAG, "Chat response (code " + responseCode + "): " + responseText);
-                
-                mainHandler.post(() -> {
-                    removeTypingIndicator();
+                    String responseText = response.toString();
+                    Log.d(TAG, "Chat response: " + responseText);
                     
-                    if (responseCode == 200) {
-                        // SUCCESS: Parse AI response and diamond count
-                        if (responseText.contains("\"response\":")) {
-                            String aiResponse = extractJsonValue(responseText, "response");
-                            String diamondsStr = extractJsonValue(responseText, "remainingDiamonds");
-                            
-                            Log.d(TAG, "AI Response: " + aiResponse);
+                    // Parse AI response and updated diamond count
+                    if (responseText.contains("\"response\":")) {
+                        String aiResponse = extractJsonValue(responseText, "response");
+                        String diamondsStr = extractJsonValue(responseText, "remainingDiamonds");
+                        
+                        Log.d(TAG, "Received AI response: " + aiResponse.substring(0, Math.min(50, aiResponse.length())) + "...");
+                        Log.d(TAG, "Updated diamond count: " + diamondsStr);
+                        
+                        mainHandler.post(() -> {
+                            removeTypingIndicator();
                             addMessage(aiResponse, false);
                             
-                            // Update diamond count
+                            // Update diamond count from server response
                             try {
-                                diamondCount = Integer.parseInt(diamondsStr);
+                                int serverDiamonds = Integer.parseInt(diamondsStr);
+                                diamondCount = serverDiamonds;
                                 updateDiamondDisplay();
+                                Log.d(TAG, "Updated diamond count after message: " + diamondCount);
                             } catch (NumberFormatException e) {
+                                Log.e(TAG, "Error parsing diamond count: " + diamondsStr);
+                                // Fallback: fetch diamond count from server
                                 fetchDiamondCount();
                             }
-                        }
-                    } else if (responseCode == 402) {
-                        // INSUFFICIENT DIAMONDS
-                        String remainingStr = extractJsonValue(responseText, "remainingDiamonds");
-                        try {
-                            diamondCount = Integer.parseInt(remainingStr);
-                            updateDiamondDisplay();
-                        } catch (Exception e) {
-                            diamondCount = 0;
-                            updateDiamondDisplay();
-                        }
-                        
-                        addMessage("💎 You need more diamonds to send messages! You have " + diamondCount + " diamonds remaining.", false);
+                        });
                     } else {
-                        // OTHER ERRORS
-                        Log.e(TAG, "Chat API error " + responseCode + ": " + responseText);
-                        addMessage("❌ Connection error. Please check your internet and try again.", false);
+                        Log.e(TAG, "No response field found in: " + responseText);
+                        mainHandler.post(() -> {
+                            removeTypingIndicator();
+                            addMessage("❌ No response received from AI", false);
+                        });
                     }
-                });
+                } else {
+                    Log.e(TAG, "Chat API failed with code: " + responseCode);
+                    
+                    // Read error response
+                    BufferedReader errorReader = new BufferedReader(new InputStreamReader(connection.getErrorStream()));
+                    StringBuilder errorResponse = new StringBuilder();
+                    String errorLine;
+                    while ((errorLine = errorReader.readLine()) != null) {
+                        errorResponse.append(errorLine);
+                    }
+                    errorReader.close();
+                    
+                    Log.e(TAG, "Error response: " + errorResponse.toString());
+                    
+                    mainHandler.post(() -> {
+                        removeTypingIndicator();
+                        if (responseCode == 402) {
+                            addMessage("❌ Not enough diamonds! Please purchase more diamonds to continue.", false);
+                        } else {
+                            addMessage("❌ Failed to send message. Please try again.", false);
+                        }
+                    });
+                }
                 
                 connection.disconnect();
                 
@@ -1692,46 +1691,32 @@ public class MainActivity extends AppCompatActivity {
     
     @Override
     public void onBackPressed() {
-        Log.d(TAG, "SYSTEM Back button pressed - currentScreen: " + currentScreen);
+        Log.d(TAG, "Back button pressed");
         
-        try {
-            // ABSOLUTE FIX: If in chat, return to home without ANY crashes
-            if ("chat".equals(currentScreen)) {
-                Log.d(TAG, "SYSTEM BACK: In chat mode - forcing return to home");
-                
-                // Reset state immediately
-                currentScreen = "home";
-                currentCompanionId = -1;
-                currentCompanionName = "";
-                
-                // NULL everything to prevent crashes
+        // FIXED: If in chat, go directly to home screen
+        if ("chat".equals(currentScreen)) {
+            Log.d(TAG, "System back button: returning from chat to home");
+            currentScreen = "home";
+            currentCompanionId = -1;
+            currentCompanionName = "";
+            
+            // Clear all chat state
+            if (chatMessages != null) {
+                chatMessages.removeAllViews();
                 chatMessages = null;
-                chatScrollView = null;
-                messageInput = null;
-                
-                // FORCE complete recreation of home interface
-                runOnUiThread(() -> {
-                    try {
-                        setContentView(new LinearLayout(this)); // Clear screen
-                        createInteractiveInterface(); // Rebuild home
-                        Log.d(TAG, "SYSTEM BACK: Successfully returned to home");
-                    } catch (Exception e) {
-                        Log.e(TAG, "SYSTEM BACK error: " + e.getMessage());
-                        // Emergency fallback - just show a basic interface
-                        finish();
-                        startActivity(getIntent());
-                    }
-                });
-                return; // Don't call super.onBackPressed()
-            } else {
-                Log.d(TAG, "SYSTEM BACK: Not in chat - exiting app");
-                super.onBackPressed(); // Normal exit
             }
-        } catch (Exception e) {
-            Log.e(TAG, "CRITICAL SYSTEM BACK ERROR: " + e.getMessage());
-            // Emergency restart
-            finish();
-            startActivity(getIntent());
+            if (chatScrollView != null) {
+                chatScrollView.removeAllViews(); 
+                chatScrollView = null;
+            }
+            
+            // Force complete interface rebuild to home screen
+            setContentView(null);
+            createInteractiveInterface();
+            Log.d(TAG, "System back: Successfully returned to home");
+        } else {
+            Log.d(TAG, "Back button: exiting app");
+            super.onBackPressed(); // Default back behavior (exit app)
         }
     }
     
