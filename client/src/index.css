@@ -1,0 +1,845 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Poppins:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom gradient backgrounds */
+.gradient-bg {
+  background: linear-gradient(135deg, #FF5C8D 0%, #E91E63 50%, #C41E3A 100%);
+}
+
+.gradient-card {
+  background: rgba(139, 69, 19, 0.25);
+  backdrop-filter: blur(15px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+.glass-nav {
+  background: rgba(139, 69, 19, 0.4);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+/* Typography */
+.font-serif {
+  font-family: 'Playfair Display', serif;
+}
+
+.font-sans {
+  font-family: 'Poppins', sans-serif;
+}
+
+/* Text shadows and glows */
+.text-glow {
+  text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+}
+
+.text-glow-gold {
+  text-shadow: 0 0 15px rgba(255, 215, 0, 0.8);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-sans antialiased text-foreground;
+    background: linear-gradient(135deg, #FF5C8D 0%, #E91E63 50%, #C41E3A 100%);
+  }
+
+  /* Mobile-specific improvements */
+  @supports (height: 100dvh) {
+    .h-screen {
+      height: 100dvh;
+    }
+  }
+
+  /* Safe area support for mobile devices */
+  .safe-area-inset-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .pb-safe {
+    padding-bottom: calc(1rem + env(safe-area-inset-bottom));
+  }
+
+  /* WhatsApp-style chat bubbles */
+  .whatsapp-user {
+    background: #dcf8c6 !important;
+    color: #000 !important;
+    border-radius: 18px 18px 4px 18px !important;
+    position: relative;
+    margin-left: 60px !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.15) !important;
+  }
+  
+  .whatsapp-companion {
+    background: #ffffff !important;
+    color: #000 !important;
+    border-radius: 18px 18px 18px 4px !important;
+    position: relative;
+    margin-right: 60px !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.15) !important;
+  }
+  
+  /* Dark mode overrides */
+  .dark .whatsapp-companion {
+    background: #2d3748 !important;
+    color: #ffffff !important;
+  }
+  
+  /* Message spacing */
+  .chat-message-container {
+    margin-bottom: 8px !important;
+  }
+
+  /* OLD MOBILE SYSTEM REMOVED - WAS CONFLICTING WITH WHATSAPP LAYOUT */
+  
+  /* Ensure input fields are properly sized */
+  .chat-input-container textarea,
+  .chat-input-container input {
+    background: hsl(var(--background)) !important;
+    border: 1px solid hsl(var(--border)) !important;
+    border-radius: 8px !important;
+    padding: 12px !important;
+    font-size: 16px !important; /* Prevent iOS zoom */
+    line-height: 1.4 !important;
+    resize: none !important;
+    min-height: 44px !important; /* Minimum touch target */
+    flex: 1 !important;
+    margin-right: 8px !important;
+  }
+
+  /* Better touch targets for mobile */
+  button {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Improve tap highlighting */
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+@layer utilities {
+  /* Custom scrollbar styles */
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: hsl(var(--muted));
+    border-radius: 4px;
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: hsl(var(--primary) / 0.5);
+    border-radius: 4px;
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--primary) / 0.8);
+  }
+  
+  .scrollbar-thumb-rounded::-webkit-scrollbar-thumb {
+    border-radius: 4px;
+  }
+  
+  .scrollbar-thumb-primary::-webkit-scrollbar-thumb {
+    background: hsl(var(--primary) / 0.5);
+  }
+  
+  .scrollbar-track-muted::-webkit-scrollbar-track {
+    background: hsl(var(--muted));
+  }
+
+  @keyframes typing-bounce-1 {
+    0% {
+      transform: translateY(0px);
+      opacity: 0.4;
+    }
+    50% {
+      transform: translateY(-8px);
+      opacity: 0.8;
+    }
+    100% {
+      transform: translateY(0px);
+      opacity: 0.4;
+    }
+  }
+
+  @keyframes typing-bounce-2 {
+    0% {
+      transform: translateY(0px);
+      opacity: 0.4;
+    }
+    50% {
+      transform: translateY(-8px);
+      opacity: 0.8;
+    }
+    100% {
+      transform: translateY(0px);
+      opacity: 0.4;
+    }
+  }
+
+  @keyframes typing-bounce-3 {
+    0% {
+      transform: translateY(0px);
+      opacity: 0.4;
+    }
+    50% {
+      transform: translateY(-8px);
+      opacity: 0.8;
+    }
+    100% {
+      transform: translateY(0px);
+      opacity: 0.4;
+    }
+  }
+
+  .animate-typing-1 {
+    animation: typing-bounce-1 1.5s infinite ease-in-out;
+    animation-delay: 0s;
+  }
+
+  .animate-typing-2 {
+    animation: typing-bounce-2 1.5s infinite ease-in-out;
+    animation-delay: 0.2s;
+  }
+
+  .animate-typing-3 {
+    animation: typing-bounce-3 1.5s infinite ease-in-out;
+    animation-delay: 0.4s;
+  }
+
+  /* PRESERVE WEBAPP DESIGN - NO CIRCULAR OVERRIDES */
+  /* Only preserve circular avatars in chat */
+  .chat-avatar,
+  .chat-avatar * {
+    border-radius: 50% !important;
+  }
+  
+  /* Specific popup border radius fixes - no broad selectors */
+  .image-generator-popup {
+    border-radius: 0.75rem !important;
+  }
+  
+  .image-generator-popup * {
+    border-radius: inherit;
+  }
+  
+  /* Only target dialog elements specifically */
+  [role="dialog"] {
+    border-radius: 0.75rem !important;
+  }
+
+  
+  /* iOS specific adjustments */
+  @supports (-webkit-touch-callout: none) {
+    .chat-input-container {
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+    }
+  }
+}
+
+/* ======================================
+   WHATSAPP-STYLE 3-PART CHAT LAYOUT
+   ====================================== */
+
+/* Main container with CSS Grid - 3 part architecture */
+.whatsapp-chat-app {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  height: 100vh;
+  height: 100dvh; /* Dynamic viewport height for mobile */
+  max-height: 100vh;
+  max-height: 100dvh;
+  overflow: hidden;
+  
+  /* ANDROID STATUS BAR SAFE AREA - Single consolidated declaration */
+  padding-top: max(28px, env(safe-area-inset-top), constant(safe-area-inset-top));
+}
+
+/* Android Status Bar Fix - Higher specificity override for detected Android */
+body.android-statusbar-fix .whatsapp-chat-app {
+  padding-top: var(--android-status-bar-height, 32px) !important;
+}
+
+/* PART 1: Fixed Header - Never scrolls */
+.whatsapp-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: hsl(var(--background));
+  border-bottom: 1px solid hsl(var(--border));
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* PART 2: Scrollable Messages Area */
+.whatsapp-messages {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background: hsl(var(--background));
+  scroll-behavior: smooth;
+  overscroll-behavior: contain;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+}
+
+/* PART 3: Fixed Input Area */
+.whatsapp-input {
+  position: sticky;
+  bottom: 0;
+  background: hsl(var(--background));
+  border-top: 1px solid hsl(var(--border));
+  flex-shrink: 0;
+  z-index: 10;
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Input field styling */
+.whatsapp-input-field {
+  font-size: 16px !important; /* Prevents iOS zoom */
+  border-radius: 20px;
+  border: 1px solid hsl(var(--border));
+  background: hsl(var(--background));
+  padding: 12px 16px;
+  resize: none;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.whatsapp-input-field:focus {
+  border-color: hsl(var(--primary));
+  box-shadow: 0 0 0 2px hsl(var(--primary) / 0.2);
+}
+
+/* Message bubbles */
+.whatsapp-user {
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  padding: 12px 16px;
+  border-radius: 18px 18px 4px 18px;
+  margin-left: auto;
+  word-wrap: break-word;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.whatsapp-companion {
+  background: hsl(var(--muted));
+  color: hsl(var(--muted-foreground));
+  padding: 12px 16px;
+  border-radius: 18px 18px 18px 4px;
+  margin-right: auto;
+  word-wrap: break-word;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* Keyboard handling for mobile */
+@media (max-width: 768px) {
+  .whatsapp-chat-app {
+    height: 100vh;
+    height: 100dvh;
+  }
+  
+  /* When keyboard is visible - Use transform instead of position change */
+  .keyboard-open .whatsapp-input {
+    transform: translateY(var(--keyboard-offset, 0px));
+    transition: transform 0.3s ease;
+  }
+}
+
+/* NATIVE MOBILE APP DESIGN - SEPARATE FROM WEBAPP */
+
+.mobile-app {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: #000000;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  overflow: hidden;
+  color: #FFFFFF;
+}
+
+/* Status Bar - Native Mobile */
+.mobile-status-bar {
+  height: 24px;
+  background: #000000;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #FFFFFF;
+  flex-shrink: 0;
+  z-index: 1000;
+}
+
+.mobile-status-left {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.mobile-status-right {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Chat Header - Native Design */
+.mobile-chat-header {
+  height: 64px;
+  background: linear-gradient(135deg, #FF5C8D 0%, #E91E63 50%, #C41E3A 100%);
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  color: #FFFFFF;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+  flex-shrink: 0;
+  position: relative;
+  z-index: 100;
+}
+
+.mobile-back-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(10px);
+}
+
+.mobile-back-btn:active {
+  background: rgba(255, 255, 255, 0.25);
+  transform: scale(0.95);
+}
+
+.mobile-header-content {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.mobile-avatar-container {
+  position: relative;
+  margin-right: 12px;
+}
+
+.mobile-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.mobile-avatar-placeholder {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #FF9A8B 0%, #A890FE 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 600;
+  color: #FFFFFF;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.mobile-online-dot {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  width: 12px;
+  height: 12px;
+  background: #4CD964;
+  border-radius: 50%;
+  border: 2px solid #FFFFFF;
+}
+
+.mobile-companion-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.mobile-companion-name {
+  font-size: 18px;
+  font-weight: 600;
+  color: #FFFFFF;
+  margin: 0;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mobile-companion-status {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.8);
+  margin: 0;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mobile-header-actions {
+  display: flex;
+  align-items: center;
+}
+
+.mobile-diamond-counter {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 20px;
+  padding: 6px 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  backdrop-filter: blur(10px);
+}
+
+/* Messages Area - Native Scroll */
+.mobile-messages {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background: linear-gradient(180deg, #F8F9FA 0%, #E9ECEF 100%);
+  padding: 20px 16px;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+.mobile-guest-notice {
+  background: rgba(255, 193, 7, 0.1);
+  border: 1px solid rgba(255, 193, 7, 0.3);
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 20px;
+  text-align: center;
+  color: #856404;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+/* Message Bubbles - Native Design */
+.mobile-message {
+  margin-bottom: 16px;
+  display: flex;
+  max-width: 100%;
+  animation: messageAppear 0.3s ease-out;
+}
+
+.mobile-message-user {
+  justify-content: flex-end;
+}
+
+.mobile-message-companion {
+  justify-content: flex-start;
+}
+
+.mobile-message-bubble {
+  max-width: 80%;
+  position: relative;
+  border-radius: 24px;
+  padding: 14px 18px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.mobile-message-user .mobile-message-bubble {
+  background: linear-gradient(135deg, #007AFF 0%, #0056CC 100%);
+  color: #FFFFFF;
+  border-bottom-right-radius: 8px;
+  margin-left: auto;
+}
+
+.mobile-message-companion .mobile-message-bubble {
+  background: #FFFFFF;
+  color: #000000;
+  border-bottom-left-radius: 8px;
+  border: 1px solid #E5E5EA;
+}
+
+.mobile-message-text {
+  font-size: 16px;
+  line-height: 1.4;
+  margin: 0;
+  word-wrap: break-word;
+}
+
+.mobile-message-image {
+  width: 100%;
+  max-width: 200px;
+  border-radius: 12px;
+  margin-top: 8px;
+}
+
+.mobile-message-time {
+  font-size: 11px;
+  opacity: 0.7;
+  margin-top: 4px;
+  display: block;
+}
+
+/* Typing Indicator */
+.mobile-typing-indicator {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 0;
+}
+
+.mobile-typing-indicator span {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #8E8E93;
+  animation: typingDot 1.5s infinite;
+}
+
+.mobile-typing-indicator span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.mobile-typing-indicator span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+/* Input Area - Native Design */
+.mobile-input-area {
+  background: #FFFFFF;
+  border-top: 1px solid #E5E5EA;
+  padding: 12px 16px;
+  padding-bottom: max(12px, env(safe-area-inset-bottom));
+  flex-shrink: 0;
+  box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.1);
+}
+
+.mobile-input-container {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+}
+
+.mobile-input-wrapper {
+  flex: 1;
+  position: relative;
+}
+
+.mobile-input {
+  width: 100%;
+  min-height: 44px;
+  max-height: 120px;
+  border: 1px solid #D1D1D6;
+  border-radius: 24px;
+  padding: 12px 16px;
+  font-size: 16px;
+  font-family: inherit;
+  background: #F2F2F7;
+  color: #000000;
+  resize: none;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.mobile-input:focus {
+  border-color: #007AFF;
+  background: #FFFFFF;
+  box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.2);
+}
+
+.mobile-input::placeholder {
+  color: #8E8E93;
+}
+
+.mobile-input-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mobile-camera-btn,
+.mobile-send-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.mobile-camera-btn {
+  background: #8E8E93;
+  color: #FFFFFF;
+}
+
+.mobile-camera-btn:active {
+  background: #636366;
+  transform: scale(0.95);
+}
+
+.mobile-send-btn {
+  background: linear-gradient(135deg, #007AFF 0%, #0056CC 100%);
+  color: #FFFFFF;
+}
+
+.mobile-send-btn:active {
+  background: linear-gradient(135deg, #0056CC 0%, #003F99 100%);
+  transform: scale(0.95);
+}
+
+.mobile-send-btn:disabled,
+.mobile-camera-btn:disabled {
+  background: #D1D1D6;
+  color: #8E8E93;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Animations */
+@keyframes messageAppear {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes typingDot {
+  0%, 60%, 100% {
+    transform: translateY(0);
+    opacity: 0.4;
+  }
+  30% {
+    transform: translateY(-10px);
+    opacity: 1;
+  }
+}
+
+/* ======================================
+   ANDROID KEYBOARD HANDLING
+   ====================================== */
+
+/* This CSS responds to the keyboard-visible class that MainActivity.java injects */
+.keyboard-visible {
+  /* When keyboard is visible, adjust viewport and input positioning */
+  height: 100vh !important;
+  overflow: hidden !important;
+}
+
+/* Specific adjustments for different input types when keyboard is visible */
+.keyboard-visible .whatsapp-input,
+.keyboard-visible .mobile-input-area,
+.keyboard-visible .chat-input-container {
+  position: fixed !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  z-index: 9999 !important;
+  background: hsl(var(--background)) !important;
+  border-top: 1px solid hsl(var(--border)) !important;
+  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Adjust messages area when keyboard is visible */
+.keyboard-visible .whatsapp-messages,
+.keyboard-visible .mobile-messages {
+  padding-bottom: 120px !important; /* Space for input area */
+  overflow-y: auto !important;
+}
+
+/* Ensure chat container adjusts properly */
+.keyboard-visible .whatsapp-chat-app {
+  height: 100vh !important;
+  padding-bottom: 0 !important;
+}
+
+/* Input field stays focused and visible */
+.keyboard-visible input,
+.keyboard-visible textarea {
+  font-size: 16px !important; /* Prevent iOS zoom */
+  background: hsl(var(--background)) !important;
+  border-radius: 8px !important;
+  padding: 12px !important;
+  margin: 8px !important;
+  min-height: 44px !important;
+  outline: none !important;
+  border: 1px solid hsl(var(--border)) !important;
+}
+
+/* Sign-in forms and auth pages */
+.keyboard-visible .auth-form,
+.keyboard-visible .login-form,
+.keyboard-visible .signup-form {
+  padding-bottom: 120px !important;
+  overflow-y: auto !important;
+}
+
+/* Ensure all form inputs are properly positioned */
+.keyboard-visible form {
+  margin-bottom: 120px !important;
+}
+
+/* Special handling for companion settings and other popups */
+.keyboard-visible [role="dialog"],
+.keyboard-visible .popup-content {
+  max-height: calc(100vh - 120px) !important;
+  overflow-y: auto !important;
+}
+
+/* Android-specific optimizations */
+@media (max-width: 768px) {
+  .keyboard-visible {
+    /* Ensure no scrolling of main body */
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+  }
+  
+  /* Input containers get priority positioning */
+  .keyboard-visible .whatsapp-input,
+  .keyboard-visible .mobile-input-area {
+    position: fixed !important;
+    bottom: 0 !important;
+    width: 100% !important;
+    background: white !important;
+    border-top: 1px solid #ddd !important;
+    padding: 12px !important;
+    box-shadow: 0 -2px 10px rgba(0,0,0,0.1) !important;
+  }
+}

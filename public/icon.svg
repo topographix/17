@@ -1,0 +1,30 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle with gradient -->
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FF1744;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#E91E63;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#C2185B;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="heartGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFFFFF;stop-opacity:0.95" />
+      <stop offset="100%" style="stop-color:#FCE4EC;stop-opacity:0.95" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  <circle cx="256" cy="256" r="240" fill="url(#bgGradient)" stroke="#AD1457" stroke-width="4"/>
+  
+  <!-- Heart shape -->
+  <path d="M256 400C256 400 160 320 160 240C160 200 190 170 230 170C240 170 250 175 256 180C262 175 272 170 282 170C322 170 352 200 352 240C352 320 256 400 256 400Z" fill="url(#heartGradient)" stroke="#AD1457" stroke-width="2"/>
+  
+  <!-- Sparkle effects -->
+  <circle cx="180" cy="180" r="8" fill="#FFFFFF" opacity="0.8"/>
+  <circle cx="340" cy="190" r="6" fill="#FFFFFF" opacity="0.7"/>
+  <circle cx="320" cy="320" r="5" fill="#FFFFFF" opacity="0.6"/>
+  <circle cx="170" cy="340" r="7" fill="#FFFFFF" opacity="0.8"/>
+  
+  <!-- Star sparkles -->
+  <path d="M200 150 L205 160 L215 160 L207 167 L210 177 L200 170 L190 177 L193 167 L185 160 L195 160 Z" fill="#FFFFFF" opacity="0.9"/>
+  <path d="M360 280 L363 286 L369 286 L364 290 L366 296 L360 292 L354 296 L356 290 L351 286 L357 286 Z" fill="#FFFFFF" opacity="0.8"/>
+</svg>

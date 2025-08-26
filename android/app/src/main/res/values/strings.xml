@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">RedVelvet</string>
+    <string name="title_activity_main">RedVelvet</string>
+    <string name="package_name">com.redvelvet.aicompanion</string>
+    <string name="custom_url_scheme">com.redvelvet.aicompanion</string>
+</resources>

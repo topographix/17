@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Android Test - RedVelvet</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #E91E63;
+            color: white;
+            padding: 20px;
+            margin: 0;
+        }
+        .test-container {
+            max-width: 600px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        .test-item {
+            background: rgba(255,255,255,0.1);
+            margin: 10px 0;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        .success { border-color: #4CAF50; background: rgba(76,175,80,0.2); }
+        .error { border-color: #f44336; background: rgba(244,67,54,0.2); }
+        button {
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>RedVelvet Android Test</h1>
+        <p>Testing basic functionality for Android APK</p>
+        
+        <div id="basic-test" class="test-item">
+            <h3>✓ Basic HTML/CSS Loading</h3>
+            <p>If you can see this styled content, the HTML and CSS are working.</p>
+        </div>
+        
+        <div id="js-test" class="test-item">
+            <h3 id="js-status">⏳ JavaScript Test</h3>
+            <p id="js-result">Testing JavaScript execution...</p>
+        </div>
+        
+        <div id="dom-test" class="test-item">
+            <h3>⏳ DOM Manipulation Test</h3>
+            <button onclick="testDOM()">Click to Test DOM</button>
+            <p id="dom-result">Waiting for test...</p>
+        </div>
+        
+        <div id="storage-test" class="test-item">
+            <h3>⏳ Local Storage Test</h3>
+            <button onclick="testStorage()">Test Storage</button>
+            <p id="storage-result">Waiting for test...</p>
+        </div>
+        
+        <div class="test-item">
+            <h3>RedVelvet Demo</h3>
+            <button onclick="showDemo()">Launch Demo</button>
+        </div>
+    </div>
+
+    <script>
+        // Test JavaScript execution
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('js-status').innerHTML = '✓ JavaScript Test';
+            document.getElementById('js-result').innerHTML = 'JavaScript is working correctly!';
+            document.getElementById('js-test').className = 'test-item success';
+        });
+
+        // Test DOM manipulation
+        function testDOM() {
+            const result = document.getElementById('dom-result');
+            const timestamp = new Date().toLocaleTimeString();
+            result.innerHTML = `✓ DOM updated at ${timestamp}`;
+            document.getElementById('dom-test').className = 'test-item success';
+        }
+
+        // Test local storage
+        function testStorage() {
+            try {
+                localStorage.setItem('redvelvet-test', 'working');
+                const value = localStorage.getItem('redvelvet-test');
+                const result = document.getElementById('storage-result');
+                
+                if (value === 'working') {
+                    result.innerHTML = '✓ Local storage is working';
+                    document.getElementById('storage-test').className = 'test-item success';
+                } else {
+                    throw new Error('Storage value mismatch');
+                }
+            } catch (e) {
+                document.getElementById('storage-result').innerHTML = '✗ Local storage failed: ' + e.message;
+                document.getElementById('storage-test').className = 'test-item error';
+            }
+        }
+
+        // Show RedVelvet demo
+        function showDemo() {
+            window.location.href = './index.html';
+        }
+    </script>
+</body>
+</html>

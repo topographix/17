@@ -1,0 +1,81 @@
+name: Build Android APK
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Java 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        
+    - name: Setup Android SDK
+      uses: android-actions/setup-android@v3
+      
+    - name: Cache Gradle packages
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.gradle/caches
+          ~/.gradle/wrapper
+        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+        restore-keys: |
+          ${{ runner.os }}-gradle-
+          
+    - name: Make gradlew executable
+      run: chmod +x android/gradlew
+      
+    - name: Clean project
+      run: cd android && ./gradlew clean
+      
+    - name: Build APK
+      run: cd android && ./gradlew assembleDebug
+      
+    - name: Upload APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: redvelvet-debug-apk
+        path: android/app/build/outputs/apk/debug/app-debug.apk
+        retention-days: 30
+        
+    - name: Create Release
+      if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: v1.0.${{ github.run_number }}
+        name: RedVelvet APK v1.0.${{ github.run_number }}
+        body: |
+          ## RedVelvet AI Companion APK
+          
+          ### Features
+          - AI Bot responses working with diamond deduction
+          - Back button navigation fixed (crash-proof)
+          - Device-based diamond tracking with PostgreSQL
+          - WhatsApp-style chat interface
+          - Server connection to https://red-velvet-connection.replit.app
+          
+          ### Installation
+          1. Download the APK file
+          2. Enable "Install from unknown sources" on your Android device
+          3. Install the APK
+          4. Open RedVelvet and start chatting with AI companions
+          
+          ### Server Status
+          Server is live at: https://red-velvet-connection.replit.app
+        files: android/app/build/outputs/apk/debug/app-debug.apk
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

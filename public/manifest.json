@@ -1,0 +1,25 @@
+{
+  "name": "RedVelvet - AI Companion Platform",
+  "short_name": "RedVelvet",
+  "description": "Your personal AI companion for meaningful conversations",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#E91E63",
+  "theme_color": "#E91E63",
+  "orientation": "portrait",
+  "categories": ["lifestyle", "entertainment", "social"],
+  "icons": [
+    {
+      "src": "/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
