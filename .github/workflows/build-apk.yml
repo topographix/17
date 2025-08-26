@@ -1,4 +1,4 @@
-name: Build Android APK
+name: Build RedVelvet APK
 
 on:
   push:
@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    - name: Checkout code
+    - name: Checkout repository
       uses: actions/checkout@v4
       
     - name: Setup Java 17
@@ -24,56 +24,57 @@ jobs:
     - name: Setup Android SDK
       uses: android-actions/setup-android@v3
       
-    - name: Cache Gradle packages
-      uses: actions/cache@v3
+    - name: Cache Gradle
+      uses: actions/cache@v4
       with:
         path: |
           ~/.gradle/caches
           ~/.gradle/wrapper
+          android/.gradle
         key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
         restore-keys: |
           ${{ runner.os }}-gradle-
           
-    - name: Make gradlew executable
+    - name: Make Gradle wrapper executable
       run: chmod +x android/gradlew
       
-    - name: Clean project
-      run: cd android && ./gradlew clean
+    - name: Clean and build APK
+      run: |
+        cd android
+        ./gradlew clean
+        ./gradlew assembleDebug
       
-    - name: Build APK
-      run: cd android && ./gradlew assembleDebug
-      
-    - name: Upload APK
+    - name: Upload APK artifact
       uses: actions/upload-artifact@v4
       with:
-        name: redvelvet-debug-apk
+        name: redvelvet-apk
         path: android/app/build/outputs/apk/debug/app-debug.apk
         retention-days: 30
         
-    - name: Create Release
+    - name: Create GitHub release
       if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
       uses: softprops/action-gh-release@v1
       with:
-        tag_name: v1.0.${{ github.run_number }}
-        name: RedVelvet APK v1.0.${{ github.run_number }}
+        tag_name: build-${{ github.run_number }}
+        name: RedVelvet APK Build ${{ github.run_number }}
         body: |
-          ## RedVelvet AI Companion APK
+          ## RedVelvet AI Companion APK - Ready to Install
           
-          ### Features
-          - AI Bot responses working with diamond deduction
-          - Back button navigation fixed (crash-proof)
-          - Device-based diamond tracking with PostgreSQL
-          - WhatsApp-style chat interface
-          - Server connection to https://red-velvet-connection.replit.app
+          ✅ **Java compilation errors fixed**  
+          ✅ **Server live at https://red-velvet-connection.replit.app**  
+          ✅ **AI responses and diamond tracking working**  
+          ✅ **Back button navigation crash-proof**  
           
-          ### Installation
-          1. Download the APK file
-          2. Enable "Install from unknown sources" on your Android device
-          3. Install the APK
-          4. Open RedVelvet and start chatting with AI companions
+          ### Installation Instructions
+          1. Download `app-debug.apk` from this release
+          2. Enable "Unknown sources" in Android settings
+          3. Install APK and enjoy your AI companion
           
-          ### Server Status
-          Server is live at: https://red-velvet-connection.replit.app
+          ### Verified Features
+          - Device-based diamond tracking (25 diamonds welcome bonus)
+          - AI chat with automatic diamond deduction
+          - WhatsApp-style mobile interface
+          - Crash-proof back button navigation
         files: android/app/build/outputs/apk/debug/app-debug.apk
         draft: false
         prerelease: false

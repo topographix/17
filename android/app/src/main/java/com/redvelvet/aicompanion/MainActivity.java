@@ -1280,7 +1280,7 @@ public class MainActivity extends AppCompatActivity {
                 // NULL all references to prevent crashes
                 chatMessages = null;
                 chatScrollView = null;
-                chatInputField = null;
+                messageInput = null;
                 
                 // Force diamond refresh
                 fetchDiamondCount();
@@ -1718,7 +1718,7 @@ public class MainActivity extends AppCompatActivity {
                 // NULL everything to prevent crashes
                 chatMessages = null;
                 chatScrollView = null;
-                chatInputField = null;
+                messageInput = null;
                 
                 // FORCE complete recreation of home interface
                 runOnUiThread(() -> {
