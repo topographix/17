@@ -411,19 +411,24 @@ export default function Chat() {
       confidence: detectedEmotion.primaryEmotion.confidence
     };
     
-    // Call the chat API
+    // Call the chat API - use guest endpoint for non-authenticated users
+    const apiEndpoint = user ? `/api/companions/${id}/chat` : `/api/guest/chat`;
+    const requestBody = user ? {
+      message,
+      userId: user.id,
+      emotion
+    } : {
+      companionId: parseInt(id),
+      message
+    };
+    
     setTimeout(() => {
-      fetchApi(`/api/companions/${id}/chat`, {
+      fetchApi(apiEndpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          message,
-          userId: user?.id,
-          sessionId: user ? undefined : sessionId, // Only use sessionId for guest users
-          emotion
-        })
+        body: JSON.stringify(requestBody)
       })
       .then(response => {
         if (!response.ok) {
@@ -432,15 +437,23 @@ export default function Chat() {
         return response.json();
       })
       .then(data => {
+        // Handle different response formats for guest vs authenticated users
+        const responseText = data.response || data.text || data.message || "I'm having trouble responding right now.";
+        
+        // Update diamond count if it's a guest response
+        if (!user && data.remainingDiamonds !== undefined) {
+          setGuestDiamonds(data.remainingDiamonds);
+        }
+        
         // Calculate typing delay to make it feel natural
-        const typingDelay = calculateTypingDelay(data.text);
+        const typingDelay = calculateTypingDelay(responseText);
         
         // After delay, show the companion's response
         setTimeout(() => {
           // Create companion message
           const companionMessage: Message = {
             id: generateId(),
-            content: data.text,
+            content: responseText,
             sender: "companion",
             timestamp: new Date(),
             emotion: data.emotion ? {

@@ -6,7 +6,7 @@ import Anthropic from '@anthropic-ai/sdk';
 
 // Initialize Anthropic client
 const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
+  apiKey: process.env.ANTHROPIC_API_KEY2,
 });
 
 // Store guest user data by session ID
@@ -456,11 +456,12 @@ Response guidelines:
       return cleanedResponse || "Hey, what's on your mind?";
       
     } catch (error: any) {
-      console.error('Anthropic API error details:', {
+      console.error('❌ Anthropic API error details:', {
         message: error?.message || 'Unknown error',
         status: error?.status || 'No status',
         type: error?.type || 'No type',
-        apiKey: process.env.ANTHROPIC_API_KEY ? 'Present' : 'Missing',
+        apiKey: process.env.ANTHROPIC_API_KEY2 ? 'Present' : 'Missing',
+        errorStack: error?.stack || 'No stack trace',
         fullError: error
       });
       // Fallback to personality-based response

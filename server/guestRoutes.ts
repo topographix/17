@@ -1,5 +1,6 @@
 import express, { Request, Response } from 'express';
 import { guestService } from './services/guestService';
+import { companionService } from './services/companionService';
 
 const router = express.Router();
 
@@ -170,6 +171,59 @@ router.get('/can-access/:companionId', (req: Request, res: Response) => {
   } catch (error) {
     console.error("Error checking companion access:", error);
     res.status(500).json({ message: "Failed to check companion access" });
+  }
+});
+
+// Chat endpoint for guest users
+router.post('/chat', async (req: Request, res: Response) => {
+  try {
+    const sessionId = req.sessionID;
+    if (!sessionId) {
+      return res.status(400).json({ message: "No session available" });
+    }
+
+    const { companionId, message } = req.body;
+    
+    if (!companionId || !message) {
+      return res.status(400).json({ message: "companionId and message are required" });
+    }
+
+    // Check if guest has diamonds
+    const diamondCount = guestService.getDiamondsCount(sessionId);
+    if (diamondCount <= 0) {
+      return res.status(400).json({ 
+        message: "Insufficient diamonds", 
+        remainingDiamonds: 0 
+      });
+    }
+
+    // Use a diamond for this message
+    const usageResult = guestService.useDiamonds(sessionId, 1);
+    if (!usageResult.success) {
+      return res.status(400).json({ 
+        message: "Failed to use diamond", 
+        remainingDiamonds: usageResult.remainingDiamonds 
+      });
+    }
+
+    // Get AI response
+    const response = await companionService.processMessage({
+      companionId,
+      message,
+      userId: 0, // Guest user
+      sessionId
+    });
+
+    res.json({
+      success: true,
+      response: response.text,
+      remainingDiamonds: usageResult.remainingDiamonds
+    });
+
+  } catch (error) {
+    console.error("❌ Error in guest chat:", error);
+    console.error("❌ Error stack:", error instanceof Error ? error.stack : 'No stack');
+    res.status(500).json({ message: "Failed to get chat response" });
   }
 });
 
