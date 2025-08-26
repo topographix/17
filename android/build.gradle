@@ -16,7 +16,6 @@ buildscript {
 }
 
 apply from: "variables.gradle"
-apply from: "capacitor-java17-override.gradle"
 
 // Override any Java 21 configurations before project evaluation
 gradle.projectsEvaluated {

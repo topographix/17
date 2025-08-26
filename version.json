@@ -1,0 +1,23 @@
+{
+  "version": "2.0.2",
+  "lastUpdated": "2025-08-26",
+  "changelog": [
+    {
+      "version": "2.0.2",
+      "date": "2025-08-26",
+      "changes": [
+        "Version control system implemented with auto-incrementing releases"
+      ]
+    },
+    {
+      "version": "2.0.0",
+      "date": "2025-01-27",
+      "changes": [
+        "Codebase cleanup - removed 30+ redundant files",
+        "AI chat system verified working with diamond deduction",
+        "Android back button navigation fixed",
+        "Production-ready APK build system"
+      ]
+    }
+  ]
+}

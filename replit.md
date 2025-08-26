@@ -106,6 +106,18 @@ RedVelvet is a full-stack AI companion platform that provides users with persona
 - **Build Scripts**: Simplified to single production-ready build-apk.sh
 - **Asset Cleanup**: Removed debugging files and test artifacts
 - **Structure Simplified**: Clean, maintainable codebase focused on core functionality
+- **Version Control**: Implemented automatic versioning system starting at v2.0.0
+  - Auto-increment version for each iteration (patch level)
+  - Versioned zip downloads (RedVelvet-v2.0.x.tar.gz)
+  - Versioned APK generation (RedVelvet-v2.0.x.apk)
+  - Changelog tracking in version.json
+
+### Build System Status (August 26, 2025)
+- **Web Application**: ✅ Fully functional with all mobile features
+- **Android APK Build**: ⚠️ Requires local Android Studio setup (ANDROID_HOME missing in Replit)
+- **Mobile Features Complete**: AI chat system, diamond tracking, back button handling
+- **Version System**: Working with auto-increment (currently v2.0.2)
+- **Build Scripts**: Updated with proper error handling and local development instructions
 
 ## User Preferences
 
