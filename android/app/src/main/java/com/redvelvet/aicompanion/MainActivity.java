@@ -1460,7 +1460,9 @@ public class MainActivity extends AppCompatActivity {
     }
     
     private void sendChatMessage(String message) {
-        Log.d(TAG, "Sending message: " + message);
+        Log.d(TAG, "ANDROID CHAT START - Companion ID: " + currentCompanionId + ", Message: " + message.substring(0, Math.min(20, message.length())) + "...");
+        Log.d(TAG, "ANDROID CHAT START - Device fingerprint: " + deviceFingerprint.substring(0, Math.min(10, deviceFingerprint.length())) + "...");
+        Log.d(TAG, "ANDROID CHAT START - Server URL: " + SERVER_URL);
         
         addMessage(message, true);
         addTypingIndicator();
@@ -1469,17 +1471,22 @@ public class MainActivity extends AppCompatActivity {
             try {
                 // First get/create guest session if needed
                 if (guestSessionId.isEmpty()) {
+                    Log.d(TAG, "ANDROID CHAT - Getting guest session first...");
                     getGuestSession();
                 }
                 
                 // Send chat message using guest endpoint (fixed for Android)
                 URL url = new URL(SERVER_URL + "/api/guest/chat");
+                Log.d(TAG, "ANDROID CHAT - Connecting to: " + url.toString());
+                
                 HttpURLConnection connection = (HttpURLConnection) url.openConnection();
                 connection.setRequestMethod("POST");
                 connection.setRequestProperty("Content-Type", "application/json");
                 connection.setRequestProperty("User-Agent", "RedVelvet-Android/1.0");
                 connection.setRequestProperty("X-Device-Fingerprint", deviceFingerprint);
                 connection.setRequestProperty("X-Platform", "android");
+                connection.setConnectTimeout(10000); // 10 second timeout
+                connection.setReadTimeout(15000); // 15 second timeout
                 connection.setDoOutput(true);
                 
                 String jsonPayload = String.format(
@@ -1487,7 +1494,7 @@ public class MainActivity extends AppCompatActivity {
                     currentCompanionId, message.replace("\"", "\\\"")
                 );
                 
-                Log.d(TAG, "Sending Android chat request: " + jsonPayload);
+                Log.d(TAG, "ANDROID CHAT - Sending request: " + jsonPayload);
                 
                 try (OutputStream os = connection.getOutputStream()) {
                     byte[] input = jsonPayload.getBytes(StandardCharsets.UTF_8);
@@ -1507,7 +1514,8 @@ public class MainActivity extends AppCompatActivity {
                     reader.close();
                     
                     String responseText = response.toString();
-                    Log.d(TAG, "Chat response: " + responseText);
+                    Log.d(TAG, "ANDROID CHAT SUCCESS - Full response: " + responseText);
+                    Log.d(TAG, "ANDROID CHAT SUCCESS - Response length: " + responseText.length());
                     
                     // Parse AI response and updated diamond count
                     if (responseText.contains("\"response\":")) {
@@ -1541,7 +1549,8 @@ public class MainActivity extends AppCompatActivity {
                         });
                     }
                 } else {
-                    Log.e(TAG, "Chat API failed with code: " + responseCode);
+                    Log.e(TAG, "ANDROID CHAT FAILED - Response code: " + responseCode);
+                    Log.e(TAG, "ANDROID CHAT FAILED - Server URL: " + SERVER_URL + "/api/guest/chat");
                     
                     // Read error response
                     BufferedReader errorReader = new BufferedReader(new InputStreamReader(connection.getErrorStream()));
@@ -1567,7 +1576,9 @@ public class MainActivity extends AppCompatActivity {
                 connection.disconnect();
                 
             } catch (Exception e) {
-                Log.e(TAG, "Chat error: " + e.getMessage());
+                Log.e(TAG, "ANDROID CHAT EXCEPTION: " + e.getMessage());
+                Log.e(TAG, "ANDROID CHAT EXCEPTION: " + e.getClass().getSimpleName());
+                e.printStackTrace();
                 mainHandler.post(() -> {
                     removeTypingIndicator();
                     addMessage("❌ Network error. Please check your connection.", false);
