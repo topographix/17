@@ -26,6 +26,8 @@ import java.util.concurrent.Executors;
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "RedVelvet";
     private static final String SERVER_URL = "https://red-velvet-connection.replit.app";
+    // For local testing: use "http://10.0.2.2:5000" for Android emulator
+    // For production APK: use "https://red-velvet-connection.replit.app"
     private ExecutorService executor;
     private Handler mainHandler;
     private TextView statusText;
@@ -1485,13 +1487,15 @@ public class MainActivity extends AppCompatActivity {
                     currentCompanionId, message.replace("\"", "\\\"")
                 );
                 
+                Log.d(TAG, "Sending Android chat request: " + jsonPayload);
+                
                 try (OutputStream os = connection.getOutputStream()) {
                     byte[] input = jsonPayload.getBytes(StandardCharsets.UTF_8);
                     os.write(input, 0, input.length);
                 }
                 
                 int responseCode = connection.getResponseCode();
-                Log.d(TAG, "Chat API response code: " + responseCode);
+                Log.d(TAG, "Android chat API response code: " + responseCode);
                 
                 if (responseCode == 200) {
                     BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
