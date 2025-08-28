@@ -40,6 +40,7 @@ public class MainActivity extends AppCompatActivity {
     private int currentCompanionId = -1;
     private String currentCompanionName = "";
     private String guestSessionId = "";
+    private String sessionCookie = ""; // Store full session cookie for persistent sessions
     private String currentScreen = "home";
     private TextView diamondCounter;
     private LinearLayout mainContainer;
@@ -1189,7 +1190,8 @@ public class MainActivity extends AppCompatActivity {
         
         executor.execute(() -> {
             try {
-                URL url = new URL(SERVER_URL + "/api/mobile/device-session");
+                // CRITICAL FIX: Use guest session instead of device session to avoid conflicts
+                URL url = new URL(SERVER_URL + "/api/guest/session");
                 HttpURLConnection connection = (HttpURLConnection) url.openConnection();
                 connection.setRequestMethod("GET");
                 connection.setRequestProperty("User-Agent", "RedVelvet-Android/1.0");
@@ -1199,7 +1201,17 @@ public class MainActivity extends AppCompatActivity {
                 connection.setReadTimeout(5000);
                 
                 int responseCode = connection.getResponseCode();
-                Log.d(TAG, "Device session response code: " + responseCode);
+                Log.d(TAG, "UNIFIED SESSION - Response code: " + responseCode);
+                
+                // CRITICAL: Extract session cookie from Set-Cookie header
+                String setCookieHeader = connection.getHeaderField("Set-Cookie");
+                if (setCookieHeader != null) {
+                    // Extract connect.sid cookie value
+                    if (setCookieHeader.contains("connect.sid=")) {
+                        sessionCookie = setCookieHeader.split(";")[0]; // Get "connect.sid=VALUE"
+                        Log.d(TAG, "UNIFIED SESSION - Captured session cookie: " + sessionCookie.substring(0, Math.min(20, sessionCookie.length())) + "...");
+                    }
+                }
                 
                 if (responseCode == 200) {
                     BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
@@ -1211,9 +1223,10 @@ public class MainActivity extends AppCompatActivity {
                     reader.close();
                     
                     String responseText = response.toString();
-                    Log.d(TAG, "Device session response: " + responseText);
+                    Log.d(TAG, "UNIFIED SESSION - Guest session response: " + responseText);
                     
-                    // Parse diamond count from device session
+                    // CRITICAL FIX: Extract session ID and diamonds from guest session
+                    guestSessionId = extractJsonValue(responseText, "sessionId");
                     String diamondsStr = extractJsonValue(responseText, "messageDiamonds");
                     String hasReceivedWelcome = extractJsonValue(responseText, "hasReceivedWelcomeDiamonds");
                     
@@ -1226,25 +1239,28 @@ public class MainActivity extends AppCompatActivity {
                             updateDiamondDisplay();
                             
                             if (welcomeReceived) {
-                                updateStatus("✅ Device registered! " + diamondCount + " diamonds available");
+                                updateStatus("✅ Connected! " + diamondCount + " diamonds available");
                             } else {
                                 updateStatus("🎉 Welcome! You received 25 diamonds!");
                             }
+                            
+                            Log.d(TAG, "UNIFIED SESSION - Session ID: " + guestSessionId.substring(0, Math.min(8, guestSessionId.length())) + "...");
                         });
                     } catch (NumberFormatException e) {
-                        Log.e(TAG, "Error parsing diamond count: " + diamondsStr);
-                        mainHandler.post(() -> updateStatus("❌ Diamond tracking error"));
+                        Log.e(TAG, "UNIFIED SESSION - Error parsing diamond count: " + diamondsStr);
+                        mainHandler.post(() -> updateStatus("❌ Session initialization error"));
                     }
                 } else {
-                    Log.e(TAG, "Device session failed with code: " + responseCode);
-                    mainHandler.post(() -> updateStatus("❌ Device registration failed"));
+                    Log.e(TAG, "UNIFIED SESSION - Failed with code: " + responseCode);
+                    mainHandler.post(() -> updateStatus("❌ Connection failed"));
                 }
                 
                 connection.disconnect();
                 
             } catch (IOException e) {
-                Log.e(TAG, "Device session error: " + e.getMessage());
-                mainHandler.post(() -> updateStatus("❌ Device session unreachable"));
+                Log.e(TAG, "UNIFIED SESSION - Network error: " + e.getMessage());
+                e.printStackTrace();
+                mainHandler.post(() -> updateStatus("❌ Network connection failed"));
             }
         });
     }
@@ -1472,13 +1488,17 @@ public class MainActivity extends AppCompatActivity {
         
         executor.execute(() -> {
             try {
-                // First get/create guest session if needed
-                if (guestSessionId.isEmpty()) {
-                    Log.d(TAG, "ANDROID CHAT - Getting guest session first...");
-                    getGuestSession();
+                // Session is already established in initializeDeviceSession()
+                if (guestSessionId == null || guestSessionId.isEmpty()) {
+                    Log.e(TAG, "ANDROID CHAT - No session available! Initialization may have failed.");
+                    mainHandler.post(() -> {
+                        removeTypingIndicator();
+                        addMessage("❌ Connection error. Please restart the app.", false);
+                    });
+                    return;
                 }
                 
-                // Send chat message using guest endpoint (fixed for Android)
+                // CRITICAL FIX: Use guest chat API that has REAL AI responses
                 URL url = new URL(SERVER_URL + "/api/guest/chat");
                 Log.d(TAG, "ANDROID CHAT - Connecting to: " + url.toString());
                 
@@ -1488,6 +1508,13 @@ public class MainActivity extends AppCompatActivity {
                 connection.setRequestProperty("User-Agent", "RedVelvet-Android/1.0");
                 connection.setRequestProperty("X-Device-Fingerprint", deviceFingerprint);
                 connection.setRequestProperty("X-Platform", "android");
+                // CRITICAL: Add session cookie for guest API authentication
+                if (sessionCookie != null && !sessionCookie.isEmpty()) {
+                    connection.setRequestProperty("Cookie", sessionCookie);
+                    Log.d(TAG, "ANDROID CHAT - Using session cookie: " + sessionCookie.substring(0, Math.min(20, sessionCookie.length())) + "...");
+                } else {
+                    Log.e(TAG, "ANDROID CHAT - NO SESSION COOKIE! This will fail.");
+                }
                 connection.setConnectTimeout(10000); // 10 second timeout
                 connection.setReadTimeout(15000); // 15 second timeout
                 connection.setDoOutput(true);
@@ -1590,45 +1617,29 @@ public class MainActivity extends AppCompatActivity {
         });
     }
     
-    private void getGuestSession() {
-        try {
-            URL url = new URL(SERVER_URL + "/api/guest/session");
-            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-            connection.setRequestMethod("GET");
-            connection.setRequestProperty("User-Agent", "RedVelvet-Android/1.0");
-            
-            int responseCode = connection.getResponseCode();
-            if (responseCode == 200) {
-                BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-                StringBuilder response = new StringBuilder();
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    response.append(line);
-                }
-                reader.close();
-                
-                String responseText = response.toString();
-                guestSessionId = extractJsonValue(responseText, "sessionId");
-                Log.d(TAG, "Guest session ID: " + guestSessionId);
-            }
-            
-            connection.disconnect();
-        } catch (Exception e) {
-            Log.e(TAG, "Error getting guest session: " + e.getMessage());
-        }
-    }
+    // REMOVED: Duplicate guest session method - using unified session in initializeDeviceSession() instead
     
     private void fetchDiamondCount() {
         executor.execute(() -> {
             try {
-                URL url = new URL(SERVER_URL + "/api/mobile/diamonds");
+                // FIXED: Use guest API instead of mobile API for real AI
+                URL url = new URL(SERVER_URL + "/api/guest/diamonds");
+                Log.d(TAG, "DIAMOND FETCH - Connecting to: " + url.toString());
+                
                 HttpURLConnection connection = (HttpURLConnection) url.openConnection();
                 connection.setRequestMethod("GET");
                 connection.setRequestProperty("User-Agent", "RedVelvet-Android/1.0");
                 connection.setRequestProperty("X-Device-Fingerprint", deviceFingerprint);
                 connection.setRequestProperty("X-Platform", "android");
-                connection.setConnectTimeout(5000);
-                connection.setReadTimeout(5000);
+                // CRITICAL: Add session cookie for guest API authentication  
+                if (sessionCookie != null && !sessionCookie.isEmpty()) {
+                    connection.setRequestProperty("Cookie", sessionCookie);
+                    Log.d(TAG, "DIAMOND FETCH - Using session cookie: " + sessionCookie.substring(0, Math.min(20, sessionCookie.length())) + "...");
+                } else {
+                    Log.e(TAG, "DIAMOND FETCH - NO SESSION COOKIE! This will fail.");
+                }
+                connection.setConnectTimeout(10000);
+                connection.setReadTimeout(10000);
                 
                 int responseCode = connection.getResponseCode();
                 Log.d(TAG, "Diamond fetch response code: " + responseCode + " for device: " + deviceFingerprint.substring(0, 8) + "...");
@@ -1657,12 +1668,33 @@ public class MainActivity extends AppCompatActivity {
                         Log.e(TAG, "Error parsing diamond count: " + diamondsStr);
                     }
                 } else {
-                    Log.e(TAG, "Failed to fetch diamonds, response code: " + responseCode);
+                    Log.e(TAG, "DIAMOND FETCH FAILED - Response code: " + responseCode);
+                    Log.e(TAG, "DIAMOND FETCH FAILED - URL was: " + url.toString());
+                    
+                    // Read error response
+                    try {
+                        BufferedReader errorReader = new BufferedReader(new InputStreamReader(connection.getErrorStream()));
+                        StringBuilder errorResponse = new StringBuilder();
+                        String errorLine;
+                        while ((errorLine = errorReader.readLine()) != null) {
+                            errorResponse.append(errorLine);
+                        }
+                        errorReader.close();
+                        Log.e(TAG, "DIAMOND FETCH ERROR: " + errorResponse.toString());
+                    } catch (Exception ignored) {}
                 }
                 
                 connection.disconnect();
             } catch (Exception e) {
-                Log.e(TAG, "Error fetching diamond count: " + e.getMessage());
+                Log.e(TAG, "DIAMOND FETCH EXCEPTION: " + e.getMessage());
+                Log.e(TAG, "DIAMOND FETCH EXCEPTION: " + e.getClass().getSimpleName());
+                e.printStackTrace();
+                
+                // Update UI to show connection failed
+                mainHandler.post(() -> {
+                    updateDiamondDisplay();
+                    Log.e(TAG, "DIAMOND FETCH FAILED - Network connection problem!");
+                });
             }
         });
     }
@@ -1678,6 +1710,11 @@ public class MainActivity extends AppCompatActivity {
                 connection.setRequestMethod("GET");
                 connection.setRequestProperty("User-Agent", "RedVelvet-Android/1.0");
                 connection.setRequestProperty("X-Device-Fingerprint", "test");
+                // CRITICAL: Add session cookie for guest API network test
+                if (sessionCookie != null && !sessionCookie.isEmpty()) {
+                    connection.setRequestProperty("Cookie", sessionCookie);
+                    Log.d(TAG, "NETWORK TEST - Using session cookie: " + sessionCookie.substring(0, Math.min(20, sessionCookie.length())) + "...");
+                }
                 connection.setConnectTimeout(5000);
                 connection.setReadTimeout(5000);
                 
@@ -1686,8 +1723,31 @@ public class MainActivity extends AppCompatActivity {
                 
                 if (responseCode == 200) {
                     Log.d(TAG, "ANDROID NETWORK TEST - SUCCESS: Server reachable!");
+                    
+                    // Read actual response
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                    StringBuilder response = new StringBuilder();
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        response.append(line);
+                    }
+                    reader.close();
+                    Log.d(TAG, "ANDROID NETWORK TEST - Response: " + response.toString());
+                    
                 } else {
                     Log.e(TAG, "ANDROID NETWORK TEST - FAILED: Response code " + responseCode);
+                    
+                    // Read error response
+                    try {
+                        BufferedReader errorReader = new BufferedReader(new InputStreamReader(connection.getErrorStream()));
+                        StringBuilder errorResponse = new StringBuilder();
+                        String errorLine;
+                        while ((errorLine = errorReader.readLine()) != null) {
+                            errorResponse.append(errorLine);
+                        }
+                        errorReader.close();
+                        Log.e(TAG, "ANDROID NETWORK TEST - Error response: " + errorResponse.toString());
+                    } catch (Exception ignored) {}
                 }
                 
                 connection.disconnect();
