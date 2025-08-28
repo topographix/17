@@ -61,6 +61,9 @@ public class MainActivity extends AppCompatActivity {
         // Generate device fingerprint for diamond tracking
         generateDeviceFingerprint();
         
+        // Test network connectivity first
+        testNetworkConnectivity();
+        
         // Create interactive interface
         createInteractiveInterface();
         
@@ -1664,6 +1667,39 @@ public class MainActivity extends AppCompatActivity {
         });
     }
     
+    private void testNetworkConnectivity() {
+        Log.d(TAG, "ANDROID NETWORK TEST - Starting connectivity test...");
+        executor.execute(() -> {
+            try {
+                URL testUrl = new URL(SERVER_URL + "/api/guest/diamonds");
+                Log.d(TAG, "ANDROID NETWORK TEST - Testing URL: " + testUrl.toString());
+                
+                HttpURLConnection connection = (HttpURLConnection) testUrl.openConnection();
+                connection.setRequestMethod("GET");
+                connection.setRequestProperty("User-Agent", "RedVelvet-Android/1.0");
+                connection.setRequestProperty("X-Device-Fingerprint", "test");
+                connection.setConnectTimeout(5000);
+                connection.setReadTimeout(5000);
+                
+                int responseCode = connection.getResponseCode();
+                Log.d(TAG, "ANDROID NETWORK TEST - Response code: " + responseCode);
+                
+                if (responseCode == 200) {
+                    Log.d(TAG, "ANDROID NETWORK TEST - SUCCESS: Server reachable!");
+                } else {
+                    Log.e(TAG, "ANDROID NETWORK TEST - FAILED: Response code " + responseCode);
+                }
+                
+                connection.disconnect();
+                
+            } catch (Exception e) {
+                Log.e(TAG, "ANDROID NETWORK TEST - EXCEPTION: " + e.getMessage());
+                Log.e(TAG, "ANDROID NETWORK TEST - Exception type: " + e.getClass().getSimpleName());
+                e.printStackTrace();
+            }
+        });
+    }
+
     private String extractJsonValue(String jsonString, String key) {
         try {
             String searchKey = "\"" + key + "\"";
