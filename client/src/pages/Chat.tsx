@@ -422,6 +422,8 @@ export default function Chat() {
       message
     };
     
+    console.log('🚀 Sending chat request:', { apiEndpoint, requestBody }); // Step 1 debug
+    
     setTimeout(() => {
       fetchApi(apiEndpoint, {
         method: 'POST',
@@ -437,11 +439,14 @@ export default function Chat() {
         return response.json();
       })
       .then(data => {
+        console.log('🤖 AI Response received:', data); // Debug logging
+        
         // Handle different response formats for guest vs authenticated users
         const responseText = data.response || data.text || data.message || "I'm having trouble responding right now.";
         
         // Update diamond count if it's a guest response
         if (!user && data.remainingDiamonds !== undefined) {
+          console.log(`💎 Diamonds updated: ${guestDiamonds} → ${data.remainingDiamonds}`);
           setGuestDiamonds(data.remainingDiamonds);
         }
         
@@ -737,7 +742,7 @@ export default function Chat() {
               variant="ghost" 
               size="icon"
               className="flex items-center justify-center"
-              onClick={() => setLocation(user ? '/dashboard' : '/')}
+              onClick={() => setLocation('/')}
             >
               <ArrowLeft className="h-5 w-5" />
             </Button>

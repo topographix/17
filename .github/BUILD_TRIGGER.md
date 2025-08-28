@@ -10,7 +10,9 @@ This file triggers the GitHub Actions workflow to build the APK.
 - Confirmed proper Java class declaration
 - Ready for production APK build
 
-### Build Time: January 7, 2025 - 11:06 AM
+### Latest Update: August 26, 2025 - 11:31 AM
+
+**FIXED:** Removed restrictive path filters from GitHub workflow. Actions now trigger on any push to main branch.
 
 The workflow will now:
 1. Clean any duplicate MainActivity files

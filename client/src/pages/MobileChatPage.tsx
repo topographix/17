@@ -90,16 +90,24 @@ export default function MobileChatPage() {
     setIsGenerating(true);
 
     try {
-      const response = await fetchApi("/api/chat", {
+      // Use correct API endpoint - guest endpoint for non-authenticated users
+      const apiEndpoint = user ? `/api/companions/${id}/chat` : '/api/guest/chat';
+      const requestBody = user ? {
+        message: messageToSend,
+        userId: (user as any).id
+      } : {
+        companionId: parseInt(id!),
+        message: messageToSend
+      };
+
+      console.log('📱 Mobile sending message:', { apiEndpoint, requestBody }); // Debug log
+      
+      const response = await fetchApi(apiEndpoint, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          companionId: parseInt(id!),
-          message: messageToSend,
-          sessionId: user ? undefined : (guestSession as any)?.sessionId
-        }),
+        body: JSON.stringify(requestBody)
       });
 
       if (!response.ok) {

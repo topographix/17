@@ -1470,8 +1470,8 @@ public class MainActivity extends AppCompatActivity {
                     getGuestSession();
                 }
                 
-                // Send chat message using device-based deduction endpoint
-                URL url = new URL(SERVER_URL + "/api/mobile/diamonds/deduct");
+                // Send chat message using guest endpoint (fixed for Android)
+                URL url = new URL(SERVER_URL + "/api/guest/chat");
                 HttpURLConnection connection = (HttpURLConnection) url.openConnection();
                 connection.setRequestMethod("POST");
                 connection.setRequestProperty("Content-Type", "application/json");
